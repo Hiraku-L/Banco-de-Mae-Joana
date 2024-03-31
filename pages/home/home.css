@@ -11,7 +11,7 @@ html, body {
 }
 @font-face {
   font-family: "Bebas Neue";
-  src: url(imagens/BebasNeue-Regular.ttf);
+  src: url(../../imagens/BebasNeue-Regular.ttf);
 }
 .navbar{
     z-index: 999;
