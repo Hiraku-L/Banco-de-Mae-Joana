@@ -32,3 +32,7 @@
         opacity: 1; /* Opacidade final de 1 */
     }
 }
+@font-face {
+    font-family: "Bebas Neue";
+    src: url(imagens/BebasNeue-Regular.ttf);
+  }
