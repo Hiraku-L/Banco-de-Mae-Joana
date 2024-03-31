@@ -231,7 +231,7 @@ function registrarTransacao(userId, destinatario, valor) {
             <tr>
               <td>${transacao.data}</td>
               <td>${transacao.destinatario}</td>
-              <td>R$ ${transacao.valor.toFixed(2)}</td>
+              <td>J$ ${transacao.valor.toFixed(2)}</td>
             </tr>
           `;
         });
