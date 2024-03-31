@@ -9,6 +9,10 @@ html, body {
     overflow: hidden; /* Isso garante que não haja rolagem vertical */
     color: aliceblue !important;
 }
+@font-face {
+  font-family: "Bebas Neue";
+  src: url(imagens/BebasNeue-Regular.ttf);
+}
 .navbar{
     z-index: 999;
 }
