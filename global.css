@@ -1,0 +1,34 @@
+.loading {
+    background: rgba(0, 0, 0, 0.95 );
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important; /* Alterado para ocupar toda a altura do navegador */
+    top: 0; /* Fixa o elemento no topo */
+    left: 0; /* Fixa o elemento na esquerda */
+    bottom: 0;
+    text-align: center;
+    align-items: center !important;
+    justify-content: center !important;
+    display: flex !important;
+    z-index: 999;
+}
+
+.loading_label {
+    color: aliceblue !important;
+    text-align: center !important;
+    z-index: 999 !important;
+    font-size: 70px !important;
+    animation: popUp 0.1s ease forwards; /* Aplica a animação 'popUp' com duração de 0.5 segundos */
+    opacity: 0; /* Inicialmente, o texto estará invisível */
+}
+
+@keyframes popUp {
+    from {
+        transform: scale(0); /* Escala inicial de 0 */
+        opacity: 0; /* Opacidade inicial de 0 */
+    }
+    to {
+        transform: scale(1); /* Escala final de 1 */
+        opacity: 1; /* Opacidade final de 1 */
+    }
+}
