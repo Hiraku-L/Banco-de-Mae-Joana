@@ -1,8 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+@font-face {
+  font-family: "Bebas Neue";
+  src: url(imagens/BebasNeue-Regular.ttf);
+}
 .bebas-neue-regular {
     font-family: "Bebas Neue", sans-serif;
     font-weight: 400;
     font-style: normal;
+    src: href("imagens/bebas-neue-regular.ttf");
   }
   
 .title1 {
