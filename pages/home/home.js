@@ -162,8 +162,12 @@ function submitPix() {
     const conteudoPrincipal = document.getElementById('conteudoPrincipal');
     // Limpa o conteúdo atual antes de adicionar o novo
     conteudoPrincipal.innerHTML = '';
-    
-    switch (secao) {
+
+
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+         switch (secao) {
+      
       case 'transacoesRecentes':
         conteudoPrincipal.innerHTML = '';
         const transacoesRecentes = document.getElementsByClassName("transacoesRecentes");
@@ -172,6 +176,8 @@ function submitPix() {
           htmlTransacoes += transacoesRecentes[i].outerHTML;
         }
         conteudoPrincipal.innerHTML = htmlTransacoes;
+        // Chama a função para exibir o histórico de transações
+        exibirHistoricoTransacoes(userId); // substitua 'userId' pelo ID do usuário
         break;
       case 'trades':
         const trades = document.getElementsByClassName("trades");
@@ -185,7 +191,12 @@ function submitPix() {
       default:
         conteudoPrincipal.innerHTML = '<p>Selecione uma opção no menu.</p>';
     }
-  }
+      } else {
+        console.log("Usuário não está autenticado.");
+      }
+    })}
+   
+   
   
  
  // Função para registrar uma transação com data e hora de Brasília
@@ -225,8 +236,10 @@ function registrarTransacao(userId, destinatario, valor) {
       .orderBy('data', 'desc')
       .onSnapshot((snapshot) => {
         let html = '';
+        let transacoes = [];
         snapshot.forEach((doc) => {
           const transacao = doc.data();
+          transacoes.push(transacao);
           html += `
             <tr>
               <td>${transacao.data}</td>
@@ -235,12 +248,32 @@ function registrarTransacao(userId, destinatario, valor) {
             </tr>
           `;
         });
+        // Armazena as transações no localStorage
+        localStorage.setItem('transacoes', JSON.stringify(transacoes));
         tabelaTransacoes.innerHTML = html;
       }, (error) => {
         console.error("Erro ao obter transações: ", error);
       });
   }
-  
+
+// Quando a página é carregada, verifica se há transações no localStorage
+window.onload = function() {
+  const transacoes = JSON.parse(localStorage.getItem('transacoes'));
+  if (transacoes) {
+    let html = '';
+    transacoes.forEach((transacao) => {
+      html += `
+        <tr>
+          <td>${transacao.data}</td>
+          <td>${transacao.destinatario}</td>
+          <td>J$ ${transacao.valor.toFixed(2)}</td>
+        </tr>
+      `;
+    });
+    const tabelaTransacoes = document.getElementById('tabelaTransacoes');
+    tabelaTransacoes.innerHTML = html;
+  }
+};
   // Obtém o ID do usuário atualmente autenticado
   firebase.auth().onAuthStateChanged((user) => {
     if (user) {
@@ -248,4 +281,4 @@ function registrarTransacao(userId, destinatario, valor) {
     } else {
       console.log("Usuário não está autenticado.");
     }
-  });
+  })
