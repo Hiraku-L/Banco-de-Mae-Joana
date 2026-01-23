@@ -1,8 +1,10 @@
-firebase.auth().onAuthStateChanged(user => {
-    if (user) {
+// Check if user is logged in on load
+window.onload = () => {
+    const token = localStorage.getItem('token');
+    if (token) {
         window.location.href = "pages/home/home.html";
     }
-})
+}
 
 function onChangeUser() {
     toggleButtonsDisable();
@@ -40,16 +42,30 @@ function validateUser(user){
    //return (user);
 }
 
-function login(){
+async function login(){
     showLoading();
-    firebase.auth().signInWithEmailAndPassword(form.user().value, 
-    form.password().value).then(response => {
+    const email = form.user().value;
+    const password = form.password().value;
+    try {
+        const response = await fetch('http://localhost:3000/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await response.json();
+        if (response.ok) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('userId', data.user.id);
+            hideLoading();
+            window.location.href = './pages/home/home.html';
+        } else {
+            hideLoading();
+            alert("VOCÊ NÃO É UM MEMBRO DO BANCO DE MÃE JOANA!!!")
+        }
+    } catch (error) {
         hideLoading();
-        window.location.href = './pages/home/home.html';
-    }).catch(error => {
-        hideLoading();
-        alert("VOCÊ NÃO É UM MEMBRO DO BANCO DE MÃE JOANA!!!")
-    });
+        alert("Erro de conexão");
+    }
     console.log('depois')
     //window.location.href = 'pages/home/home.html';
 }

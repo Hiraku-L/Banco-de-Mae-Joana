@@ -1,5 +1,4 @@
-firebase.auth().onAuthStateChanged(user => {
-    if (!user) {
-        window.location.href = "../../index.html";
-    }
-})
+const token = localStorage.getItem('token');
+if (!token) {
+    window.location.href = "../../index.html";
+}

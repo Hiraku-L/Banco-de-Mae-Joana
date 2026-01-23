@@ -1,0 +1,55 @@
+<!-- Modal Cine Personalizado -->
+<div class="modal fade" id="cinePersonalizadoModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content bg-dark text-light">
+      <div class="modal-header">
+        <h5 class="modal-title">🎬 Cine Personalizado</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="mb-3">
+          <label class="form-label">Título</label>
+          <input type="text" id="customTitle" class="form-control" placeholder="Ex: Kaikal: Um anime de aceração - EP 1">
+        </div>
+
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label class="form-label">Tipo</label>
+            <select id="customType" class="form-select" onchange="toggleEpisodeFields()">
+              <option value="movie">Filme</option>
+              <option value="serie">Série</option>
+            </select>
+          </div>
+
+          <div class="col-md-4 mb-3">
+            <label class="form-label">Duração do episódio / filme (min)</label>
+            <input type="number" id="customDuration" class="form-control" min="1">
+          </div>
+
+          <div class="col-md-4 mb-3" id="episodeCountDiv" style="display:none;">
+            <label class="form-label">Qtd. de episódios</label>
+            <input type="number" id="customEpisodes" class="form-control" min="1" value="1">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Link da imagem (poster)</label>
+          <input type="text" id="customPoster" class="form-control" placeholder="https://...jpg">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Selecionar usuários</label>
+          <select id="customUsers" class="form-select" multiple></select>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-success" onclick="submitCustomCine()">Criar Cine</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -56,6 +56,28 @@ html, body {
   a {
     text-decoration: none;
 }
+.card {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: aliceblue;
+    margin-bottom: 15px;
+}
+.card-title {
+    color: #fff;
+    font-size: 24px;
+}
+.card p {
+    color: #ccc;
+}
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: #fff;
+}
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
 @media only screen and (max-width: 1080px) {
   body {
     html, body {

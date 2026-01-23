@@ -8,6 +8,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="./movies/pending/personalizado.js"></script>
+
     <link rel="shortcut icon" href="../../imagens/favicon2.png" type="image/x-icon">
 </head>
 <body>
@@ -120,6 +122,91 @@
     </div>
   </div>
 
+<!-- Modal Cine Mãe Joana -->
+<div class="modal fade" id="cineModal" tabindex="-1" role="dialog" aria-labelledby="cineModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-dark">
+        <h5 class="modal-title" id="cineModalLabel">Solicitar Cine Mãe Joana</h5>
+        <button type="button" class="btn close btn btn-light" onclick="hideCineModal()" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">x</span>
+        </button>
+      </div>
+      <div class="modal-body bg-dark">
+        <div class="form-group mb-3">
+          <label for="movieSearch">Buscar Filme</label>
+          <input type="text" class="form-control" id="movieSearch" placeholder="Digite o nome do filme">
+          <button class="btn btn-outline-light mt-2" onclick="searchMovies()">Buscar</button>
+        </div>
+        <div id="movieResults" class="mb-3" style="max-height: 400px; overflow-y: auto;">
+          <!-- Movie results will be displayed here -->
+        </div>
+        <div class="form-group">
+          <label for="cineUsers">Selecionar Usuários</label>
+          <select multiple class="form-control" id="cineUsers">
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer bg-dark">
+        <button type="button" class="btn btn-light" onclick="hideCineModal()" data-dismiss="modal">Fechar</button>
+        <button type="button" class="btn btn-outline-light" onclick="submitCine()">Solicitar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="conteudoPrincipal"></div>
+<!-- Modal Cine Personalizado -->
+<div class="modal fade" id="cinePersonalizadoModal" tabindex="-1" aria-labelledby="cinePersonalizadoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content bg-dark text-light">
+      <div class="modal-header">
+        <h5 class="modal-title" id="cinePersonalizadoLabel">Criar Cine Personalizado</h5>
+        <button type="button" class="btn-close btn btn-light" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="customCineForm">
+          <div class="mb-3">
+            <label for="customTitle">Título</label>
+            <input type="text" class="form-control" id="customTitle">
+          </div>
+          <div class="mb-3">
+            <label for="customType">Tipo</label>
+            <select class="form-control" id="customType" onchange="toggleEpisodeFields()">
+              <option value="filme">Filme</option>
+              <option value="serie">Série</option>
+            </select>
+          </div>
+          <div class="mb-3" id="episodeCountDiv" style="display:none">
+            <label for="customEpisodes">Episódios</label>
+            <input type="number" class="form-control" id="customEpisodes" value="1">
+          </div>
+          <div class="mb-3">
+            <label for="customDuration">Duração (minutos)</label>
+            <input type="number" class="form-control" id="customDuration">
+          </div>
+          <!---
+          <div class="mb-3">
+            <label for="customPoster">Poster URL</label>
+            <input type="text" class="form-control" id="customPoster">
+          </div>
+          -->
+          
+          <div class="mb-3">
+            <label for="customUsers">Selecionar Usuários</label>
+            <select multiple class="form-control" id="customUsers"></select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Fechar</button>
+        <button type="button" class="btn btn-success" onclick="submitCustomCine()">Criar Cine</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="modalContainer"></div>
 
 
 <div id="transacoes" class="transacoesRecentes">
@@ -154,14 +241,21 @@
   <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
       <h1 class="h1">Olá, <span class="nomeUsuario"></span></h1>
   </div>
- <!-- Cine Mãe Joana Recentes -->
+ <!-- Cine Mãe Joana -->
 <h2>Cine Mãe Joana</h2>
-<div class="table-responsive">
-<table class="table table-striped table-sm">
- Em breve...
-   <!-- Lista de transações -->
- </tbody>
-</table>
+<div class="mb-3 d-flex gap-2">
+    <button class="btn btn-outline-primary" onclick="showCineModal()">Solicitar Cine Mãe Joana</button>
+<!-- Botão que abre o modal -->
+<button id="btnAbrirCinePersonalizado" class="btn btn-outline-success" onclick="showCinePersonalizadoModal()">
+  Criar Cine Personalizado
+</button>
+
+
+</div>
+
+<h3>Cines Pendentes</h3>
+<div id="pendingMovies">
+  <!-- Pending movies will be loaded here -->
 </div>
 
 <div id="trades" class="trades">
@@ -187,13 +281,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
-
-
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
- <script src="../../firebase-init.js"></script>
 <script src="home.js"></script>
 <script src="../../auth-guard.js"></script>
 </html>
