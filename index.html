@@ -11,41 +11,33 @@
 
 <body>
   
-  <div class="background-login text-light">
-    <div class="container mt-5">
-      <div class="row justify-content-center">
-        <div class="col-md-6">
-          <header class="title1 text-center mb-4">Banco de Mãe Joana</header>
-          <div class="card bg-secondary">
-            <div class="card-header bg-dark text-light">
-              <h5 class="card-title mb-0">Login do Cria</h5>
-            </div>
-            <div class="card-body">
-              <section>
-                <div class="form-group">
-                  <label for="username">Nome do Cria</label>
-                  <input id="username" onchange="onChangeUser()" type="text" class="form-control bg-dark text-light" placeholder="vosso nome">
-                  <div id="user-error" class="error user-error">
-                    O cria tem que ter nome
-                    </div>
-                    
-                </div>
-                <div class="form-group">
-                  <label for="password">Senha do cria</label>
-                  <input id="password" type="password" onchange="onChangePassword()" class="form-control bg-dark text-light" placeholder="vossa senha">
-                  <div class="error error-password" id="error-password">
-                    E a senha? Tá me achando de otaro? digo... de Kaikal?
-                    </div>
-                </div>
-                <div class="botao-adentrar">
-                <button type="submit" onclick="login()" class="btn" id="botao-adentrar" disabled="true">Adentrar</button>   
-                </div>
-                
-              </section>
-            </div>
-          </div>
+  <div class="centered-hero">
+    <div class="auth-card">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <img src="imagens/favicon2.png" alt="logo" style="width:52px;height:52px;border-radius:8px">
+        <div>
+          <div class="auth-title">Banco de Mãe Joana</div>
+          <div class="auth-sub">Banco do Banco de Mãe Joana</div>
         </div>
       </div>
+
+      <form onsubmit="event.preventDefault(); login();">
+        <div class="mb-3">
+          <label class="form-label">Usuário</label>
+          <input id="username" onchange="onChangeUser()" type="text" class="form-control" placeholder="Digite seu e-mail ou usuário">
+          <div id="user-error" class="error user-error" style="display:none;margin-top:8px">Por favor informe seu usuário</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Senha</label>
+          <input id="password" type="password" onchange="onChangePassword()" class="form-control" placeholder="Senha">
+          <div id="error-password" class="error" style="display:none;margin-top:8px">Senha inválida</div>
+        </div>
+
+    
+
+        <button id="botao-adentrar" type="submit" class="btn btn-primary">Adentrar</button>
+      </form>
     </div>
   </div>
     

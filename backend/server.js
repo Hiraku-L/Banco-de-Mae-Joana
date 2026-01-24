@@ -1,4 +1,5 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
@@ -10,11 +11,45 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+// Simple root endpoint to indicate server is alive (helps dev checks)
+app.get('/', (req, res) => res.send('Backend OK'));
 
-const TMDB_API_KEY = '5e832ea8944bc1e0d90d6b8cea3f1aaa';
+let pool = null;
+if (process.env.DATABASE_URL) {
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+  });
+} else {
+  console.warn('No DATABASE_URL provided — database features disabled for local testing');
+}
+
+// In-memory fallback for development when no DB is configured
+let inMemoryUsers = [];
+if (!pool) {
+  inMemoryUsers = [
+    {
+      id: '00000000-0000-0000-0000-000000000000',
+      email: 'dev@dev',
+      password_hash: 'devpass',
+      nome: 'Dev User',
+      saldo: 1000
+    }
+  ];
+  // also allow common dev variant
+  inMemoryUsers.push({
+    id: '00000000-0000-0000-0000-000000000001',
+    email: 'dev@dev.com',
+    password_hash: 'devpass',
+    nome: 'Dev User 2',
+    saldo: 1000
+  });
+  if (!process.env.JWT_SECRET) {
+    process.env.JWT_SECRET = 'dev_jwt_secret_change_me';
+    console.warn('Using fallback JWT_SECRET for dev. Set JWT_SECRET in env for production.');
+  }
+}
+
+const TMDB_API_KEY = process.env.TMDB_API_KEY || '5e832ea8944bc1e0d90d6b8cea3f1aaa';
 
 // Create tables if not exist
 const createTables = async () => {
@@ -56,7 +91,41 @@ const createTables = async () => {
   }
 };
 
-createTables();
+if (pool) {
+  createTables();
+}
+
+// Test DB connectivity at startup for clearer diagnostics
+const testDb = async () => {
+  if (!pool) return;
+  try {
+    const r = await pool.query('SELECT 1');
+    console.log('Database reachable (SELECT 1) OK');
+    try {
+      const cnt = await pool.query('SELECT COUNT(*) FROM users');
+      console.log('Users in DB:', cnt.rows[0].count);
+    } catch (e) {
+      console.warn('Could not count users (table may not exist yet):', e.message || e);
+    }
+  } catch (err) {
+    console.error('Database connectivity test failed:', err.message || err);
+  }
+};
+
+testDb();
+
+process.on('unhandledRejection', (reason) => {
+  console.error('UnhandledRejection:', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('UncaughtException:', err);
+});
+
+// Middleware to ensure DB is available for routes that need it
+const ensureDb = (req, res, next) => {
+  if (!pool) return res.status(503).json({ error: 'Database not configured' });
+  next();
+};
 
 const authenticateToken = (req, res, next) => {
   const token = req.header('Authorization')?.split(' ')[1];
@@ -70,35 +139,75 @@ const authenticateToken = (req, res, next) => {
 
 app.post('/register', async (req, res) => {
   const { email, password, nome } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
-  try {
-    const result = await pool.query(
-      'INSERT INTO users (email, password_hash, nome, saldo) VALUES ($1, $2, $3, 1000) RETURNING id',
-      [email, hashedPassword, nome]
-    );
-    res.json({ id: result.rows[0].id });
-  } catch (err) {
-    res.status(400).json({ error: 'User already exists or error' });
+  if (pool) {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    try {
+      const result = await pool.query(
+        'INSERT INTO users (email, password_hash, nome, saldo) VALUES ($1, $2, $3, 1000) RETURNING id',
+        [email, hashedPassword, nome]
+      );
+      res.json({ id: result.rows[0].id });
+    } catch (err) {
+      res.status(400).json({ error: 'User already exists or error' });
+    }
+  } else {
+    // dev mode: register in memory
+    if (inMemoryUsers.find(u => u.email === email)) {
+      return res.status(400).json({ error: 'User already exists (dev)' });
+    }
+    const id = `dev-${Date.now()}`;
+    inMemoryUsers.push({ id, email, password_hash: password, nome: nome || email, saldo: 1000 });
+    res.json({ id });
   }
 });
 
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
-  const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-  if (result.rows.length === 0) return res.status(400).json({ error: 'User not found' });
-  const user = result.rows[0];
-  let validPassword;
-  if (user.password_hash.startsWith('$2a$') || user.password_hash.startsWith('$2b$') || user.password_hash.startsWith('$2y$')) {
-    validPassword = await bcrypt.compare(password, user.password_hash);
+  if (pool) {
+    try {
+      console.log('Login attempt for', email, '(using DB)');
+      const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+      if (result.rows.length === 0) {
+        console.warn('No user found in DB for', email);
+        // In non-production/dev, allow in-memory fallback for quick testing
+        if (process.env.NODE_ENV !== 'production' && inMemoryUsers.length) {
+          const memUser = inMemoryUsers.find(u => u.email === email);
+          if (memUser) {
+            const validPassword = password === memUser.password_hash || await bcrypt.compare(password, memUser.password_hash).catch(()=>false);
+            if (!validPassword) return res.status(400).json({ error: 'Invalid password (dev)' });
+            const token = jwt.sign({ id: memUser.id }, process.env.JWT_SECRET);
+            return res.json({ token, user: { id: memUser.id, nome: memUser.nome, saldo: memUser.saldo } });
+          }
+        }
+        return res.status(400).json({ error: 'User not found' });
+      }
+
+      const user = result.rows[0];
+      let validPassword;
+      if (user.password_hash && (user.password_hash.startsWith('$2a$') || user.password_hash.startsWith('$2b$') || user.password_hash.startsWith('$2y$'))) {
+        validPassword = await bcrypt.compare(password, user.password_hash);
+      } else {
+        validPassword = password === user.password_hash;
+      }
+      if (!validPassword) return res.status(400).json({ error: 'Invalid password' });
+      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
+      res.json({ token, user: { id: user.id, nome: user.nome, saldo: user.saldo } });
+    } catch (err) {
+      console.error('Login error:', err);
+      res.status(500).json({ error: 'Server error' });
+    }
   } else {
-    validPassword = password === user.password_hash;
+    // dev mode: check in-memory users
+    const user = inMemoryUsers.find(u => u.email === email);
+    if (!user) return res.status(400).json({ error: 'User not found (dev)' });
+    const validPassword = password === user.password_hash;
+    if (!validPassword) return res.status(400).json({ error: 'Invalid password (dev)' });
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
+    res.json({ token, user: { id: user.id, nome: user.nome, saldo: user.saldo } });
   }
-  if (!validPassword) return res.status(400).json({ error: 'Invalid password' });
-  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
-  res.json({ token, user: { id: user.id, nome: user.nome, saldo: user.saldo } });
 });
 
-app.get('/user', authenticateToken, async (req, res) => {
+app.get('/user', authenticateToken, ensureDb, async (req, res) => {
   try {
     const result = await pool.query('SELECT nome, saldo FROM users WHERE id = $1', [req.user.id]);
     res.json(result.rows[0]);
@@ -108,7 +217,7 @@ app.get('/user', authenticateToken, async (req, res) => {
   }
 });
 
-app.post('/transfer', authenticateToken, async (req, res) => {
+app.post('/transfer', authenticateToken, ensureDb, async (req, res) => {
   const { destinatarioId, valor } = req.body;
   const client = await pool.connect();
   try {
@@ -139,7 +248,7 @@ app.post('/transfer', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/transactions', authenticateToken, async (req, res) => {
+app.get('/transactions', authenticateToken, ensureDb, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM transactions WHERE user_id = $1 ORDER BY data DESC LIMIT 10', [req.user.id]);
     res.json(result.rows);
@@ -149,7 +258,7 @@ app.get('/transactions', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/users', authenticateToken, async (req, res) => {
+app.get('/users', authenticateToken, ensureDb, async (req, res) => {
   try {
     const result = await pool.query('SELECT id, nome FROM users WHERE id != $1', [req.user.id]);
     res.json(result.rows);
@@ -159,7 +268,7 @@ app.get('/users', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/users/all', authenticateToken, async (req, res) => {
+app.get('/users/all', authenticateToken, ensureDb, async (req, res) => {
   try {
     const result = await pool.query('SELECT id, nome FROM users');
     res.json(result.rows);
@@ -173,18 +282,31 @@ app.get('/movies/search', async (req, res) => {
   const query = req.query.q;
   if (!query) return res.status(400).json({ error: 'Query required' });
   try {
-    const searchResponse = await axios.get(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
-    const movies = searchResponse.data.results.slice(0, 10);
-    const detailedMovies = await Promise.all(movies.map(async (movie) => {
-      const detailResponse = await axios.get(`https://api.themoviedb.org/3/movie/${movie.id}?api_key=${TMDB_API_KEY}`);
+    const searchResponse = await axios.get(`https://api.themoviedb.org/3/search/movie`, {
+      params: { api_key: TMDB_API_KEY, query }
+    });
+    const movies = (searchResponse.data.results || []).slice(0, 10);
+
+    const detailPromises = movies.map(movie =>
+      axios.get(`https://api.themoviedb.org/3/movie/${movie.id}`, { params: { api_key: TMDB_API_KEY } })
+        .then(r => r.data)
+        .catch(() => null)
+    );
+
+    const details = await Promise.allSettled(detailPromises);
+
+    const detailedMovies = movies.map((movie, idx) => {
+      const detail = details[idx] && details[idx].status === 'fulfilled' ? details[idx].value : null;
+      const runtime = detail?.runtime || 0;
       return {
         id: movie.id,
         title: movie.title,
         poster: movie.poster_path,
-        duration: detailResponse.data.runtime || 0,
-        price: (detailResponse.data.runtime || 0) * 0.1
+        duration: runtime,
+        price: Number((runtime * 0.1).toFixed(2))
       };
-    }));
+    });
+
     res.json(detailedMovies);
   } catch (err) {
     console.error('Error searching movies:', err);
@@ -192,7 +314,7 @@ app.get('/movies/search', async (req, res) => {
   }
 });
 
-app.post('/movies/request', authenticateToken, async (req, res) => {
+app.post('/movies/request', authenticateToken, ensureDb, async (req, res) => {
   const {
   movie_id,
   movie_title,
@@ -257,7 +379,7 @@ console.log('POSTER NO BACK:', poster);
   }
 });
 
-app.get('/movies/pending', authenticateToken, async (req, res) => {
+app.get('/movies/pending', authenticateToken, ensureDb, async (req, res) => {
   try {
     const userId = String(req.user.id);
     const result = await pool.query(`
@@ -274,7 +396,7 @@ app.get('/movies/pending', authenticateToken, async (req, res) => {
   }
 });
 
-app.post('/movies/confirm', authenticateToken, async (req, res) => {
+app.post('/movies/confirm', authenticateToken, ensureDb, async (req, res) => {
   const { session_id, user_id } = req.body;
   const sessionResult = await pool.query('SELECT * FROM movie_sessions WHERE id = $1', [session_id]);
   if (sessionResult.rows.length === 0) return res.status(404).json({ error: 'Session not found' });
@@ -301,8 +423,12 @@ app.post('/movies/confirm', authenticateToken, async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-app.delete('/movies/:id', authenticateToken, async (req, res) => {
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+
+module.exports = app;
+app.delete('/movies/:id', authenticateToken, ensureDb, async (req, res) => {
   const sessionId = req.params.id;
   const userId = String(req.user.id);
 

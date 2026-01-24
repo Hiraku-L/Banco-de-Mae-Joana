@@ -5,13 +5,22 @@ function logout(){
     localStorage.removeItem('userId');
     window.location.href = "../../index.html";
 }
+
+function toggleSidebar(){
+  const sidebar = document.querySelector('.sidebar');
+  const main = document.querySelector('.main-content');
+  const topbar = document.querySelector('.topbar');
+  if(!sidebar) return;
+  sidebar.classList.toggle('collapsed');
+  main?.classList.toggle('collapsed');
+  topbar?.classList.toggle('collapsed');
+}
 // Load user data on page load
 window.onload = async () => {
     await loadUserData();
     await loadDestinatarios();
-    await exibirHistoricoTransacoes();
     await loadPendingMovies();
-    mostrarSecao('transacoesRecentes');
+  mostrarSecao('cine');
     // Poll for updates every 5 seconds
     setInterval(loadUserData, 5000);
 };
@@ -131,32 +140,6 @@ async function submitPix() {
     conteudoPrincipal.innerHTML = '';
 
     switch (secao) {
-      
-      case 'transacoesRecentes':
-        conteudoPrincipal.innerHTML = '';
-
-        const transacoesRecentes = document.getElementsByClassName("transacoesRecentes");
-        let htmlTransacoes = '';
-        for (let i = 0; i < transacoesRecentes.length; i++) {
-            htmlTransacoes += transacoesRecentes[i].outerHTML;
-        }
-
-        conteudoPrincipal.innerHTML = htmlTransacoes;
-
-        setTimeout(() => {
-            exibirHistoricoTransacoes();
-        }, 0);
-
-        break;
-
-      case 'trades':
-        const trades = document.getElementsByClassName("trades");
-        let htmlTrades = '';
-        for (let i = 0; i < trades.length; i++) {
-          htmlTrades += trades[i].outerHTML;
-        }
-        conteudoPrincipal.innerHTML = htmlTrades;
-        break;
       case 'cine':
         // Assuming there is a div with class "cine" or similar
         const cine = document.getElementsByClassName("cine");
@@ -233,6 +216,10 @@ function hideCineModal() {
   $('#cineModal').modal('hide');
 }
 
+// Selection state for cine and custom cine
+const selectedCineUsers = new Set();
+const selectedCustomUsers = new Set();
+
 async function loadCineUsers() {
   const token = localStorage.getItem('token');
   try {
@@ -240,16 +227,29 @@ async function loadCineUsers() {
       headers: { Authorization: `Bearer ${token}` }
     });
     const users = await response.json();
-    const selectElement = document.getElementById('cineUsers');
-    selectElement.innerHTML = '';
+    const container = document.getElementById('cineUsers');
+    container.innerHTML = '';
     users.forEach(user => {
-      const option = document.createElement('option');
-      option.value = user.id;
-      option.textContent = user.nome;
-      selectElement.appendChild(option);
+      const pill = document.createElement('button');
+      pill.type = 'button';
+      pill.className = 'user-pill';
+      pill.textContent = user.nome;
+      pill.dataset.userid = user.id;
+      pill.addEventListener('click', () => toggleCineUser(user.id, pill));
+      container.appendChild(pill);
     });
   } catch (error) {
     console.error('Error loading cine users:', error);
+  }
+}
+
+function toggleCineUser(userId, el) {
+  if (selectedCineUsers.has(userId)) {
+    selectedCineUsers.delete(userId);
+    el.classList.remove('selected');
+  } else {
+    selectedCineUsers.add(userId);
+    el.classList.add('selected');
   }
 }
 
@@ -257,36 +257,48 @@ async function searchMovies() {
   const query = document.getElementById('movieSearch').value;
   if (!query) return;
   try {
-    const response = await fetch(`http://localhost:3000/movies/search?q=${encodeURIComponent(query)}`);
-    const movies = await response.json();
+    const resp = await __BJ_API.request(`/movies/search?q=${encodeURIComponent(query)}`);
     const resultsDiv = document.getElementById('movieResults');
     resultsDiv.innerHTML = '';
-    movies.forEach(movie => {
-      const div = document.createElement('div');
-      div.className = 'movie-option border p-2 mb-2 d-flex align-items-center';
-      const posterUrl = movie.poster ? `https://image.tmdb.org/t/p/w200${movie.poster}` : '';
-      div.innerHTML = `
-        ${posterUrl ? `<img src="${posterUrl}" alt="${movie.title}" class="me-3" style="width: 80px; height: auto;">` : ''}
-        <div>
-          <strong>${movie.title}</strong><br>
-          Duração: ${movie.duration} min<br>
-          Preço por pessoa: J$ ${movie.price.toFixed(2)}<br>
-          <button
-            class="btn btn-sm btn-outline-light"
-            onclick="selectMovie(
-                ${movie.id},
-                '${movie.title.replace(/'/g, "\\'")}',
-                ${movie.duration},
-                ${movie.price},
-                '${movie.poster}',
-                event
-            )">
-            Selecionar
-            </button>
 
-        </div>
-      `;
-      resultsDiv.appendChild(div);
+    if (!resp.ok) {
+      console.error('Movie search failed', resp.status, resp.data);
+      resultsDiv.innerHTML = `<div class="text-danger p-2">Erro ao buscar filmes (status ${resp.status})</div>`;
+      return;
+    }
+
+    const movies = Array.isArray(resp.data) ? resp.data : (resp.data && resp.data.results) ? resp.data.results : [];
+
+    movies.forEach(movie => {
+      const posterUrl = movie.poster ? `https://image.tmdb.org/t/p/w300${movie.poster}` : '';
+
+      const card = document.createElement('article');
+      card.className = 'movie-card';
+
+      const img = document.createElement('img');
+      img.src = posterUrl || '';
+      img.alt = movie.title;
+      img.loading = 'lazy';
+
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.innerHTML = `<h6>${movie.title}</h6><p>Duração: ${movie.duration || 0} min • Preço: J$ ${(movie.price || 0).toFixed(2)}</p>`;
+
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+      const selectBtn = document.createElement('button');
+      selectBtn.className = 'btn btn-primary';
+      selectBtn.textContent = 'Selecionar';
+      selectBtn.addEventListener('click', () => {
+        selectMovie(movie.id, movie.title, movie.duration || 0, movie.price || 0, movie.poster || '', card);
+      });
+      actions.appendChild(selectBtn);
+
+      card.appendChild(img);
+      card.appendChild(meta);
+      card.appendChild(actions);
+
+      resultsDiv.appendChild(card);
     });
   } catch (error) {
     console.error('Error searching movies:', error);
@@ -295,21 +307,14 @@ async function searchMovies() {
 
 let selectedMovie = null;
 
-function selectMovie(id, title, duration, price, poster, event) {
-  selectedMovie = {
-    id,
-    title,
-    duration,
-    price,
-    poster
-  };
+function selectMovie(id, title, duration, price, poster, cardEl) {
+  selectedMovie = { id, title, duration, price, poster };
 
-  document.querySelectorAll('.movie-option')
-    .forEach(el => el.classList.remove('bg-secondary'));
+  document.querySelectorAll('.movie-card').forEach(c => c.classList.remove('selected'));
+  if (cardEl) cardEl.classList.add('selected');
 
-  event.target.closest('.movie-option')
-    .classList.add('bg-secondary');
-
+  // scroll selected into view inside modal
+  try { cardEl?.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
   console.log('FILME SELECIONADO:', selectedMovie);
 }
 
@@ -318,7 +323,7 @@ async function submitCine() {
     alert('Selecione um filme');
     return;
   }
-  const selectedUsers = Array.from(document.getElementById('cineUsers').selectedOptions).map(opt => opt.value);
+  const selectedUsers = Array.from(selectedCineUsers);
   if (selectedUsers.length === 0) {
     alert('Selecione pelo menos um usuário');
     return;
@@ -376,12 +381,20 @@ async function loadPendingMovies() {
 
     const pendingDiv = document.getElementById('pendingMovies');
     pendingDiv.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'pending-grid';
+    pendingDiv.appendChild(grid);
 
     if (!sessions.length) {
       pendingDiv.innerHTML = `
-        <div class="text-center text-muted p-4">
-          <h5>🎬 Nenhum cine pendente</h5>
-          <p>Você ainda não participa de nenhum cine no momento.</p>
+        <div class="empty-state">
+          <div class="icon">🎬</div>
+          <h2>Nenhum cine pendente</h2>
+          <p>Você ainda não participa de nenhum cine. Solicite um cine para começar ou crie um cine personalizado para convidar amigos.</p>
+          <div class="empty-actions">
+            <button class="btn-primary-cta" onclick="showCineModal()">Solicitar Cine Mãe Joana</button>
+            <button class="btn-secondary-cta" onclick="showCinePersonalizadoModal()">Criar Cine Personalizado</button>
+          </div>
         </div>
       `;
       return;
@@ -395,68 +408,63 @@ async function loadPendingMovies() {
         usersList.length > 0 &&
         usersList.every(u => session.confirmations?.[u] === true);
 
-      const posterUrl = session.poster
-        ? `https://image.tmdb.org/t/p/w200${session.poster}`
-        : '';
+      const posterUrl = session.poster ? `https://image.tmdb.org/t/p/w300${session.poster}` : '';
 
       const card = document.createElement('div');
-      card.className = 'card mb-3';
+      card.className = 'pending-card';
 
-      card.innerHTML = `
-        <div class="card-body d-flex">
-          ${posterUrl ? `<img src="${posterUrl}" class="me-3 rounded" style="width:80px">` : ''}
-          <div style="width:100%">
-            <h5>${session.movie_title}</h5>
-            <p>
-              Duração: ${session.duration} min<br>
-              Preço: J$ ${session.price_per_person}
-            </p>
+      const img = document.createElement('img');
+      img.src = posterUrl || '';
+      img.alt = session.movie_title;
 
-            <div id="users-${session.id}" class="mb-2"></div>
+      const info = document.createElement('div');
+      info.className = 'info';
+      info.innerHTML = `<h5>${session.movie_title}</h5><p>Duração: ${session.duration} min • Preço: J$ ${session.price_per_person}</p>`;
 
-            ${
-              allConfirmed
-                ? `<button 
-                     class="btn btn-sm btn-outline-danger"
-                     onclick="deleteMovieSession(${session.id})"
-                   >
-                     Excluir cine
-                   </button>`
-                : ''
-            }
-          </div>
-        </div>
-      `;
-
-      pendingDiv.appendChild(card);
-
-      const usersDiv = card.querySelector(`#users-${session.id}`);
+      const usersWrap = document.createElement('div');
+      usersWrap.className = 'users';
 
       usersList.forEach(userId => {
         const confirmed = session.confirmations?.[userId];
+        const pill = document.createElement('div');
+        pill.className = 'user-pill';
+        pill.textContent = `${userMap[userId] || 'Usuário'}`;
+        if (confirmed) pill.classList.add('selected');
 
-        const row = document.createElement('div');
-        row.className = 'd-flex align-items-center mb-1';
-
-        row.innerHTML = `
-          <span class="me-2">
-            ${confirmed ? '✅' : '⏳'} ${userMap[userId] || 'Usuário'}
-          </span>
-
-          ${
-            isOwner && !confirmed
-              ? `<button
-                   class="btn btn-sm btn-outline-success ms-auto"
-                   onclick="confirmWatch(${session.id}, '${userId}')"
-                 >
-                   Confirmar
-                 </button>`
-              : ''
-          }
-        `;
-
-        usersDiv.appendChild(row);
+        // If owner and not confirmed, add confirm button
+        if (isOwner && !confirmed) {
+          const btn = document.createElement('button');
+          btn.className = 'btn btn-sm btn-primary';
+          btn.textContent = 'Confirmar';
+          btn.style.marginLeft = '8px';
+          btn.addEventListener('click', () => confirmWatch(session.id, userId));
+          const wrapper = document.createElement('div');
+          wrapper.style.display = 'flex';
+          wrapper.style.alignItems = 'center';
+          wrapper.appendChild(pill);
+          wrapper.appendChild(btn);
+          usersWrap.appendChild(wrapper);
+        } else {
+          usersWrap.appendChild(pill);
+        }
       });
+
+      const actionsDiv = document.createElement('div');
+      actionsDiv.style.marginLeft = 'auto';
+      if (allConfirmed && isOwner) {
+        const del = document.createElement('button');
+        del.className = 'btn btn-danger';
+        del.textContent = 'Excluir cine';
+        del.addEventListener('click', () => deleteMovieSession(session.id));
+        actionsDiv.appendChild(del);
+      }
+
+      info.appendChild(usersWrap);
+      card.appendChild(img);
+      card.appendChild(info);
+      card.appendChild(actionsDiv);
+
+      grid.appendChild(card);
     });
 
   } catch (err) {
@@ -531,31 +539,37 @@ function toggleEpisodeFields() {
 
 // Carrega os usuários no select, evitando duplicados
 async function loadCustomUsers() {
-    const token = localStorage.getItem('token');
-    const select = document.getElementById('customUsers');
-    select.innerHTML = ''; // Limpa a lista antes de popular
+  const token = localStorage.getItem('token');
+  const container = document.getElementById('customUsers');
+  container.innerHTML = '';
 
-    try {
-        const res = await fetch('http://localhost:3000/users', {
-            headers: { Authorization: `Bearer ${token}` }
+  try {
+    const res = await fetch('http://localhost:3000/users', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const users = await res.json();
+    const seen = new Set(); // avoid duplicates
+
+    users.forEach(u => {
+      if (!seen.has(u.id)) {
+        seen.add(u.id);
+        const pill = document.createElement('button');
+        pill.type = 'button';
+        pill.className = 'user-pill';
+        pill.textContent = u.nome;
+        pill.dataset.userid = u.id;
+        pill.addEventListener('click', () => {
+          if (selectedCustomUsers.has(u.id)) { selectedCustomUsers.delete(u.id); pill.classList.remove('selected'); }
+          else { selectedCustomUsers.add(u.id); pill.classList.add('selected'); }
         });
+        container.appendChild(pill);
+      }
+    });
 
-        const users = await res.json();
-        const seen = new Set(); // Evita duplicados
-
-        users.forEach(u => {
-            if (!seen.has(u.id)) {
-                seen.add(u.id);
-                const opt = document.createElement('option');
-                opt.value = u.id;
-                opt.textContent = u.nome;
-                select.appendChild(opt);
-            }
-        });
-
-    } catch (err) {
-        console.error('Erro ao carregar usuários personalizados:', err);
-    }
+  } catch (err) {
+    console.error('Erro ao carregar usuários personalizados:', err);
+  }
 }
 
 // Submete o Cine Personalizado
@@ -566,9 +580,7 @@ async function submitCustomCine() {
   const episodes = Number(document.getElementById('customEpisodes').value || 1);
   const poster = document.getElementById('customPoster').value.trim();
 
-  const selectedUsers = Array.from(
-    document.getElementById('customUsers').selectedOptions
-  ).map(o => o.value);
+  const selectedUsers = Array.from(selectedCustomUsers);
 
   if (!title || !duration || selectedUsers.length === 0) {
     alert('Preencha todos os campos obrigatórios');

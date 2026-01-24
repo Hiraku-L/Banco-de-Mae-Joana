@@ -1,146 +1,231 @@
-html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    font-family: Bebas Neue !important;
-    background: rgb(0, 0, 0);
-    background: linear-gradient(0deg, rgba(0, 0, 0, 1) 0%, rgb(34, 34, 34) 100%);
-    overflow: hidden; /* Isso garante que não haja rolagem vertical */
-    color: aliceblue !important;
-}
-@font-face {
-  font-family: "Bebas Neue";
-  src: url(../../imagens/BebasNeue-Regular.ttf);
-}
-.navbar{
-    z-index: 999;
-}
-.navbar-brand{
-    font-size: 35px !important;
-}
-.joanacoin{
-    width: 50px;
-}
-.btn{
-    font-size: 27px !important;
-}
-.sidebar {
-    letter-spacing: 1px;
-    padding-top: 80px;
-    position: fixed;
-    padding-left: 16px;
-    font-size: 25px;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 260px;
-    overflow-x: hidden;
-    overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
-  }
-  .main-content {
-    margin-left: 250px; /* Same as the width of the sidebar */
-    padding: 1rem;
-    height: 100vh; /* Viewport height */
-    overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
-  }
-  .table{
-    color: rgb(147, 147, 147);
-    font-size: 25px !important;
-    letter-spacing: 2px;
-  }
-  .close{
-    height: 30px !important;
-    font-size: 15px !important;
-  }
-  a {
-    text-decoration: none;
-}
-.card {
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: aliceblue;
-    margin-bottom: 15px;
-}
-.card-title {
-    color: #fff;
-    font-size: 24px;
-}
-.card p {
-    color: #ccc;
-}
-.btn-success {
-    background-color: #28a745;
-    border-color: #28a745;
-    color: #fff;
-}
-.btn-success:hover {
-    background-color: #218838;
-    border-color: #1e7e34;
-}
-@media only screen and (max-width: 1080px) {
-  body {
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      font-family: Bebas Neue !important;
-      background: rgb(0, 0, 0);
-      background: linear-gradient(0deg, rgba(0, 0, 0, 1) 0%, rgb(34, 34, 34) 100%);
-      overflow: hidden; /* Isso garante que não haja rolagem vertical */
-      color: aliceblue !important;
-  }
-  .navbar{
-    z-index: 999;
-}
-.navbar-brand{
-    font-size:25px !important;
-}
-.joanacoin{
-    width: 35px;
-}
-.btn{
-    font-size: 14px !important;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+:root{
+	--bg:#0b1220;
+	--surface:linear-gradient(180deg,#0f1724,#09111a);
+	--card:#0f1724;
+	--primary:#2061ff;
+	--accent:#2f7bff;
+	--success:#2db56c;
+	--text:#E6EEF3;
+	--muted:#A9B3BE;
+	--accent-2:#7c3aed;
+	--radius:12px;
 }
 
-.sidebar {
-  width: 34%;
-  display: block !important;;
-    letter-spacing: 1px;
-    padding-top: 80px;
-    position: fixed;
-    padding-left: 16px;
-    font-size: 12px;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    overflow-x: hidden;
-    overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
-  }
-  .principal{
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;background:linear-gradient(180deg,var(--bg),#071021);color:var(--text);overflow:hidden}
 
-    margin: 0px;
- 
-  }
-  .main-content {
-    margin: 0px; /* Same as the width of the sidebar */
-    padding-left: 34%;
-    height: 100vh; /* Viewport height */
-    overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
-  }
+/* Ensure the app root stretches full viewport and prevents body scrolling */
+.principal, .main-content, .sidebar {box-sizing:border-box}
+.principal{height:100vh;overflow:hidden}
+.sidebar{display:none !important;height:100vh;overflow:auto}
+.main-content{margin-left:0;padding:28px;max-height:100vh;height:100vh;overflow-y:auto;overflow-x:hidden;transition:margin-left 220ms ease}
 
-  .table{
-    color: rgb(147, 147, 147);
-    font-size: 12px !important;
-    letter-spacing: 2px;
-  }
-  .close{
-    height: 30px !important;
-    font-size: 15px !important;
-  }
-  a {
-    text-decoration: none;
+/* Layout: fixed sidebar, scrollable main-content (prevents page overflow) */
+.navbar{background:transparent;border-bottom:1px solid rgba(255,255,255,0.03)}
+.navbar-brand{font-weight:800;font-size:20px;letter-spacing:0.2px}
+.joanacoin{width:42px}
+
+.sidebar{display:none !important}
+.sidebar .nav{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.sidebar .nav a{color:var(--text);text-decoration:none;font-weight:600;padding:8px 10px;border-radius:8px;display:inline-block}
+.sidebar .nav a:hover{background:rgba(255,255,255,0.03)}
+.sidebar .user-info{margin-top:8px;font-size:14px;color:var(--muted)}
+
+.app-container{max-width:1400px;margin:0 auto}
+
+/* Topbar */
+.topbar{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:#0f1720;border-bottom:1px solid rgba(255,255,255,0.03);position:sticky;top:0;z-index:20}
+.topbar .actions{display:flex;align-items:center;gap:12px}
+.topbar .balance{background:rgba(255,255,255,0.02);padding:8px 12px;border-radius:10px;font-weight:700;color:var(--text)}
+
+.main-hero{display:flex;align-items:center;gap:18px;margin-bottom:18px}
+.hero-card{flex:1;padding:22px;border-radius:var(--radius);background:var(--card);border:1px solid rgba(255,255,255,0.03);box-shadow:0 6px 24px rgba(2,6,23,0.45)}
+.hero-title{font-size:40px;font-weight:600;margin:0;color:var(--text)}
+.hero-sub{color:var(--muted);margin-top:8px}
+
+.quick-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+.quick-card{background:var(--card);padding:18px;border-radius:var(--radius);display:flex;flex-direction:column;gap:8px}
+.quick-card .value{font-size:22px;font-weight:700;color:var(--text)}
+.quick-card .label{color:var(--muted);font-size:13px}
+
+.section-row{display:flex;gap:16px;align-items:center;margin:14px 0}
+.section-title{font-size:18px;font-weight:700;margin:0;color:var(--text)}
+.section-sub{color:var(--muted);font-size:13px}
+
+.card{border-radius:12px;padding:14px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));border:1px solid rgba(255,255,255,0.03)}
+
+.muted-small{color:var(--muted);font-size:13px}
+
+/* Buttons */
+.btn{padding:8px 12px;border-radius:10px;font-weight:700;cursor:pointer;border:none}
+.btn-outline-light{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,0.06);padding:8px 12px}
+.btn-primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#021027}
+.btn-ghost{background:transparent;border:1px dashed rgba(255,255,255,0.04);color:var(--muted)}
+
+/* Movie search results (cards grid) */
+.movie-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.movie-grid .movie-card{height:100%;display:flex;flex-direction:column}
+.movie-card{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);transition:transform .18s ease,box-shadow .18s ease}
+.movie-card:hover{transform:translateY(-6px);box-shadow:0 8px 24px rgba(2,16,39,0.6)}
+.movie-card img{width:100%;height:240px;object-fit:cover;border-radius:10px}
+.movie-card .meta{padding:6px 4px}
+.movie-card .meta h6{margin:0 0 6px 0;font-size:16px}
+.movie-card .meta p{margin:0;color:var(--muted);font-size:13px}
+.movie-card .actions{display:flex;gap:8px;justify-content:space-between}
+.movie-card .actions .btn{min-width:110px}
+
+/* Cine users pills */
+.user-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,0.02);color:var(--text);border:1px solid rgba(255,255,255,0.03);cursor:pointer}
+.user-pill.selected{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#021027}
+
+/* Pending movies grid */
+.pending-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.pending-card{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,0.03);display:flex;gap:12px;align-items:flex-start}
+.pending-card img{width:120px;height:160px;object-fit:cover;border-radius:8px}
+.pending-card .info{flex:1}
+.pending-card .info h5{margin:0 0 6px 0}
+.pending-card .info p{margin:0;color:var(--muted)}
+
+/* Responsive */
+@media(max-width:900px){.sidebar{display:none}.main-content{margin:0;padding:16px}}
+
+/* Minimal custom scrollbar for main-content */
+.main-content::-webkit-scrollbar{width:10px}
+.main-content::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.06);border-radius:10px}
+
+/* Empty state */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 12px;color:var(--muted)}
+.empty-state .icon{font-size:48px;margin-bottom:12px}
+.empty-state h2{color:var(--text);margin:8px 0 6px;font-size:28px}
+.empty-state p{color:var(--muted);max-width:560px;text-align:center}
+.empty-actions{display:flex;gap:12px;margin-top:16px}
+.btn-primary-cta{background:var(--primary);color:#fff;padding:12px 18px;border-radius:10px;border:none;font-weight:700}
+.btn-secondary-cta{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text);padding:10px 16px;border-radius:10px}
+
+/* Cine header and title improvements */
+.cine-header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:20px 0 12px}
+.cine-heading .main-title{font-size:48px;font-weight:600;margin:0;color:var(--text);line-height:1}
+.cine-heading .hero-sub{color:var(--muted);margin-top:6px;font-size:15px}
+.section-title-lg{font-size:32px;font-weight:600;margin:18px 0 12px;color:var(--text)}
+.cine-actions{display:flex;gap:12px;align-items:center}
+
+/* Button animation and spacing */
+.btn-primary-cta{transition:transform .18s ease,box-shadow .18s ease}
+.btn-primary-cta:hover,.btn-primary-cta:focus{transform:translateY(-4px);box-shadow:0 12px 30px rgba(32,97,255,0.18)}
+.btn-secondary-cta{transition:transform .12s ease,background .12s ease}
+.btn-secondary-cta:hover{transform:translateY(-2px);background:rgba(255,255,255,0.02)}
+.btn-primary-cta:focus,.btn-secondary-cta:focus{outline:3px solid rgba(32,97,255,0.16);outline-offset:4px}
+
+/* Responsive tweaks */
+@media(max-width:900px){
+	.cine-header{flex-direction:column;align-items:flex-start}
+	.cine-actions{width:100%;justify-content:flex-start}
+	.cine-actions .btn-primary-cta{margin-right:8px}
+	.cine-heading .main-title{font-size:28px}
+	.section-title-lg{font-size:20px}
 }
-  }
+
+/* Smaller utilities */
+.mb-2{margin-bottom:8px}
+
+/* Anchor / link visual tweaks */
+a{color:inherit}
+a.nav-item{display:inline-block;padding:8px 10px;border-radius:8px}
+
+/* Section headings */
+h1,h2,h3{color:var(--text);margin:0}
+h1{font-size:28px}
+h2{font-size:20px}
+
+/* Make forms match theme */
+.form-control{background:var(--card);border:1px solid rgba(255,255,255,0.04);color:var(--text);padding:10px;border-radius:8px}
+.modal-content.bg-dark .form-control{background:rgba(255,255,255,0.02)}
+
+/* Modal header/footer neutral styles to match dark theme */
+.modal-content.bg-dark .modal-header{border-bottom:1px solid rgba(255,255,255,0.04)}
+.modal-content.bg-dark .modal-footer{border-top:1px solid rgba(255,255,255,0.04)}
+.modal-content.bg-dark .modal-title{color:var(--text)}
+.modal-content.bg-dark .btn-outline-light{border-color:rgba(255,255,255,0.06);color:var(--text)}
+.btn-secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text);padding:8px 12px;border-radius:8px}
+
+/* Ensure input/select/textarea text color and caret are readable in dark modals */
+.modal-content.bg-dark .form-control,
+.modal-content.bg-dark select.form-control,
+.modal-content.bg-dark textarea.form-control{
+	color:var(--text) !important;
+	caret-color:var(--text) !important;
 }
+
+/* Placeholder color */
+.modal-content.bg-dark .form-control::placeholder{
+	color:rgba(230,238,248,0.45) !important;
+	opacity:1;
+}
+
+/* Options inside select should be readable */
+.modal-content.bg-dark select.form-control option{
+	background:var(--card);
+	color:var(--text);
+}
+
+/* Small helpers */
+.text-muted{color:var(--muted)}
+.pending-card .users{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
+.user-pill{background:rgba(255,255,255,0.03);padding:6px 8px;border-radius:999px;font-size:13px;color:var(--muted)}
+
+/* Selected user pill */
+.user-pill.selected{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#021027;border:1px solid rgba(255,255,255,0.06);box-shadow:0 6px 16px rgba(6,182,212,0.08)}
+
+/* Selected movie card visual */
+.movie-card{transition:transform .15s ease,box-shadow .15s ease;border:1px solid rgba(255,255,255,0.02)}
+.movie-card.selected{transform:translateY(-6px);box-shadow:0 18px 40px rgba(2,16,39,0.6);border-color:rgba(124,58,237,0.15)}
+
+.movie-card img{width:120px;height:170px;object-fit:cover;border-radius:8px}
+.movie-card .meta{padding-right:12px}
+.movie-card .actions{margin-left:auto}
+
+/* User grid for selection */
+.cine-users-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.cine-users-grid .user-pill{cursor:pointer;padding:8px 10px}
+
+/* movieResults container adjustments */
+#movieResults{padding:6px}
+
+/* Confirmation badge */
+.badge-confirm{background:var(--success);color:#021027;padding:6px 10px;border-radius:999px;font-weight:700}
+.badge-wait{background:rgba(255,255,255,0.03);color:var(--muted);padding:6px 10px;border-radius:999px}
+
+/* Small helpers */
+.muted-small{color:var(--muted);font-size:13px}
+
+@media(max-width:700px){
+	.movie-card{flex-direction:row}
+	.movie-card img{width:64px;height:96px}
+	.pending-card{flex-direction:column;align-items:center}
+	.pending-card img{width:60%;height:auto}
+	.pending-card .info{text-align:center}
+}
+
+/* Collapsible sidebar and topbar offset adjustments (keep after core rules) */
+.sidebar{display:none !important}
+.sidebar.collapsed{display:none !important}
+.sidebar .nav a span.label{display:none}
+
+.topbar{padding:0 20px}
+.topbar.collapsed{padding-left:20px}
+
+/* Harmonize button colors to design system */
+.btn-primary{background:var(--primary);border:1px solid var(--primary);color:#fff}
+.btn-primary:hover{filter:brightness(0.92)}
+.btn-success{background:var(--success);border:1px solid var(--success);color:#021027}
+.btn-outline-primary{background:transparent;border:1px solid var(--primary);color:var(--primary)}
+.btn-outline-success{background:transparent;border:1px solid var(--success);color:var(--success)}
+.btn-outline-light{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text)}
+
+/* Adjust main content when sidebar collapsed */
+.main-content.collapsed{margin-left:0}
+
+@media(max-width:900px){.sidebar{display:none}.main-content{margin:0;padding:16px}}
+

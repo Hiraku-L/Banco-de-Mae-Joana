@@ -36,3 +36,51 @@
     font-family: "Bebas Neue";
     src: url(imagens/BebasNeue-Regular.ttf);
   }
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+:root{
+    --bg:#0f1724;
+    --panel:#0b1220;
+    --muted:#94a3b8;
+    --accent:#06b6d4;
+    --accent-2:#7c3aed;
+    --card:#0f1a2b;
+    --glass: rgba(255,255,255,0.04);
+    --success:#10b981;
+    --danger:#ef4444;
+    --text:#e6eef8;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+    margin:0;padding:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; background:linear-gradient(180deg,var(--bg),#071021); color:var(--text); -webkit-font-smoothing:antialiased;
+}
+
+.container{max-width:1200px;margin:0 auto;padding:20px}
+.flex{display:flex}
+.center{display:flex;align-items:center;justify-content:center}
+.muted{color:var(--muted)}
+
+.btn{border:0;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+.btn-outline-light{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,0.06)}
+.btn-primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#021027; box-shadow:0 6px 18px rgba(124,58,237,0.12)}
+.btn-success{background:var(--success);color:#021027}
+.btn-danger{background:var(--danger);color:white}
+
+input,select,textarea{background:var(--panel);color:var(--text);border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px}
+
+.card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03); border-radius:12px; padding:12px}
+
+.table{width:100%;border-collapse:collapse}
+.table th{color:var(--muted);text-align:left;padding:8px}
+.table td{padding:10px;border-top:1px solid rgba(255,255,255,0.02)}
+
+.badge{background:var(--glass);padding:6px 8px;border-radius:999px;color:var(--muted);font-weight:600}
+
+.movie-option{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border-radius:10px}
+
+@media (max-width:768px){.container{padding:12px}.sidebar{display:none}}
+
+.mb-2{margin-bottom:8px}
